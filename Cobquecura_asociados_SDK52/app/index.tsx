@@ -1,13 +1,14 @@
 import  { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, TextInput } from 'react-native';
-import AppNavigator from './src/navigation/AppNavigator';
+import AppNavigator from '../src/navigation/AppNavigator';
 import { Provider } from 'react-redux';
-import store from './src/redux/store/store';
+import store from '../src/redux/store/store';
 import 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import { NavigationContainer } from '@react-navigation/native';
 
 interface TextWithDefaultProps extends Text {
   defaultProps?: { allowFontScaling?: boolean };
@@ -29,7 +30,7 @@ const App: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
   // Carga de fuentes
   const [fontsLoaded] = useFonts({
-    'Inter-Regular-400': require('./assets/fonts/Inter-Regular-400.otf'),
+    'Inter-Regular-400': require('../assets/fonts/Inter-Regular-400.otf'),
   });
 
   useEffect(() => {
@@ -56,7 +57,9 @@ const App: React.FC = () => {
     <SafeAreaProvider>
       <StatusBar style="light" />
       <Provider store={store}>
-        <AppNavigator />
+        {/* <NavigationContainer>  Lo quito por sdk52 lo trae por defecto*/}
+          <AppNavigator />
+        {/* </NavigationContainer> */}
       </Provider>
     </SafeAreaProvider>
   );

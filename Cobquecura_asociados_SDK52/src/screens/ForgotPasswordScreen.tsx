@@ -3,7 +3,6 @@ import { View, TextInput, TouchableOpacity, Text, StyleSheet, Alert, Image } fro
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { StackNavigationProp } from '@react-navigation/stack';
-import Modal from 'react-native-modal';
 import { sendPasswordResetEmail } from '../services/authService';
 import ErrorModal from '../components/ErrorModal';
 import ExitoModal from '../components/ExitoModal';

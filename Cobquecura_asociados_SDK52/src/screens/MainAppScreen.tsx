@@ -122,14 +122,6 @@ const MainTabs = () => {
           tabPress: () => setFocusedTab('Credencial'),
         }}
       />
-      {/* <Tab.Screen
-         name="Ajustes"
-         component={MapScreen}
-         options={{ headerShown: false }}
-         listeners={{
-           tabPress: () => setFocusedTab('Mapa'),
-         }}
-       />       */}
     </Tab.Navigator>
 
   );
