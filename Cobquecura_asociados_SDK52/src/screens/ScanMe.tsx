@@ -458,6 +458,7 @@ const QRScanButton = () => {
               value={description}
               onChangeText={handleDescriptionChange }
               editable={!!selectedPromotion}
+              multiline={true} 
             />
             <View style={styles.btnsFormcons}>
             <TouchableOpacity onPress={handleConfirm} style={[

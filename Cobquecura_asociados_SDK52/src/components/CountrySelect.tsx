@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../redux/store/store';
 import { getMemoizedCountries } from '../redux/selectors/globalSelectors';
+import Icon from 'react-native-vector-icons/Feather';
 
 interface CountryPickerProps {
   selectedCountry: string;
@@ -28,8 +29,19 @@ const CountryPicker: React.FC<CountryPickerProps> = ({ selectedCountry, onCountr
         value={selectedCountry}
         items={countryItems}
         placeholder={{ label: '* Seleccione un país', value: '' }}
-        style={pickerSelectStyles}
+        style={{
+          ...pickerSelectStyles,
+          iconContainer: {
+                position: 'absolute',
+                right: 15,
+                top: '43%',
+                transform: [{ translateY: -12 }],
+              }
+        }}
         useNativeAndroidPickerStyle={false}
+        Icon={() => {
+          return <Icon name="chevron-down" size={26} color="#007a8c" />;
+        }}
       />
     </View>
   );

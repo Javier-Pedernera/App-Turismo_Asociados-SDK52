@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -15,20 +14,20 @@ const SemicirclesOverlay = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-
     zIndex: -1,
     left: 0,
     right: 0,
     height: 200,
-    top:-100,
+    top: -100,
     justifyContent: 'center',
     alignItems: 'center',
-    width:screenWidth
+    width: screenWidth,
+    backgroundColor: 'transparent', // Asegúrate de que el fondo sea transparente si no deseas un color de fondo
   },
   semicircle: {
-    width: screenWidth, // Ajusta el ancho de los semicírculos
-    height: 200, // La mitad del ancho para crear un semicírculo
-    borderRadius: 100, // La mitad del ancho y altura para un semicírculo perfecto
+    width: screenWidth,
+    height: 200,
+    borderRadius: 100,
     position: 'absolute',
   },
   semicircle1: {

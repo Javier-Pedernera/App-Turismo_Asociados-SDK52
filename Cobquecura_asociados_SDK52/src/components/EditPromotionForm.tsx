@@ -89,8 +89,8 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
       branch_id: activeBranch.branch_id,
       title,
       description,
-      start_date: startDate?.toLocaleDateString(),
-      expiration_date: endDate?.toLocaleDateString(),
+      start_date: startDate?.toISOString().split('T')[0],
+      expiration_date: endDate?.toISOString().split('T')[0],
       discount_percentage: discountPercentage,
       available_quantity: availableQuantity,
       partner_id: user?.user_id || 0,
@@ -100,7 +100,7 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
       ]
     };
     const deletedImageIds = imagesToDelete
-    // console.log("datos a enviar",promotionData, deletedImageIds);
+    console.log("datos a enviar",promotionData, deletedImageIds);
     if (promotion.promotion_id) {
       dispatch(modifyPromotion(promotion.promotion_id, promotionData, deletedImageIds))
         .then(() => {

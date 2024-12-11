@@ -1,15 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform, Modal, Dimensions } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import ImageCompressor from './ImageCompressor';
 import MultiImageCompressor from './MultiImageCompressor';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMemoizedPartner, getMemoizedUserData } from '../redux/selectors/userSelectors';
-import { Category } from '../redux/types/types';
 import CategoryPicker from './CategoryPicker';
 import { getMemoizedAllCategories } from '../redux/selectors/categorySelectors';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { formatDateToDDMMYYYY, formatDateToYYYYMMDD } from '../utils/formatDate';
 import { AppDispatch } from '../redux/store/store';
 import { createPromotion, fetchPromotions } from '../redux/actions/promotionsActions';
 import Loader from './Loader';
@@ -20,7 +17,7 @@ import { getMemoizedBranches } from '../redux/selectors/branchSelectors';
 interface PromotionFormProps {
   onClose: () => void;
 }
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const PromotionForm: React.FC<PromotionFormProps> = ({ onClose }) => {
   const dispatch: AppDispatch = useDispatch();
@@ -46,9 +43,9 @@ const PromotionForm: React.FC<PromotionFormProps> = ({ onClose }) => {
   const [modalMessage, setModalMessage] = useState('');
   const [modalSuccessVisible, setModalSuccessVisible] = useState(false);
   const [modalSuccessMessage, setModalSuccessMessage] = useState('');
-console.log("fecha actual", startDate,"fecha finalizacion", endDate);
-console.log("todas las categorias",allCategories);
-console.log("imagenes",imagePaths.length);
+// console.log("fecha inicial", startDate,"fecha finalizacion", endDate);
+// console.log("todas las categorias",allCategories);
+// console.log("imagenes",imagePaths.length);
 
   const handleImagesCompressed = useCallback((images: { filename: string; data: string }[]) => {
     if (images.length <= 6) {
@@ -63,10 +60,6 @@ console.log("imagenes",imagePaths.length);
     setSelectedCategories(newSelectedCategories);
   };
 
-  const calculatePayloadSize = (promotionData: any) => {
-    const jsonString = JSON.stringify(promotionData);
-    return new Blob([jsonString]).size; // Devuelve el tamaño en bytes
-  };
   const handleSubmit = async () => {
     // console.log(title, description, startDate?.toISOString().split('T')[0], endDate?.toISOString().split('T')[0], discountPercentage, availableQuantity, selectedCategories, imagePaths.length);
     setLoading(true)
@@ -107,17 +100,8 @@ console.log("imagenes",imagePaths.length);
       category_ids: selectedCategories,
       images: imagePaths
     };
-    console.log("informacion de la promocion____________________",promotionData);
-    // Validar el tamaño del payload
-    // const MAX_PAYLOAD_SIZE = 500000;
-    // const payloadSize = calculatePayloadSize(promotionData);
-    // if (payloadSize > MAX_PAYLOAD_SIZE) {
-    //   showErrorModal(
-    //     'El tamaño de los datos excede el límite permitido. Reduzca el número o tamaño de las imágenes.'
-    //   );
-    //   setLoading(false);
-    //   return;
-    // }
+    // console.log("informacion de la promocion____________________",promotionData);
+
 
     await dispatch(createPromotion(promotionData))
       .then(() => {
@@ -125,21 +109,20 @@ console.log("imagenes",imagePaths.length);
         dispatch(fetchPromotions(user?.user_id))
         setModalSuccessMessage('La promoción ha sido creada correctamente.');
         setModalSuccessVisible(true);
-        // Alert.alert('Éxito', 'La promoción ha sido creada correctamente.');
-        // onClose();
+    
       })
       .catch((error: any) => {
         showErrorModal('Hubo un problema al crear la promoción. Intente nuevamente por favor.');
         setLoading(false)
         console.error("Error al crear la promoción: ", error);
       });
-
   };
 
   const handleStartDateChange = (event: any, date?: Date) => {
     
-    if (Platform.OS === 'ios') {
-      setStartDate(date || startDate);
+    if (Platform.OS === 'ios' && date) {
+      setShowStartDatePicker(true);
+      setStartDate(date);
       setEndDate(null);
     } else {
       if (date) {
@@ -151,15 +134,27 @@ console.log("imagenes",imagePaths.length);
   };
 
   const handleEndDateChange = (event: any, date?: Date) => {
-    if (date) {
-      if (startDate && date <= startDate) {
+    console.log("fecha de finalizacion",date);
+    
+    if (Platform.OS === 'ios'&& date) {
+      if (date && startDate && date <= startDate) {
+        showErrorModal('La fecha de fin debe ser posterior a la fecha de inicio.');
+        setShowEndDatePicker(true) 
+        return;
+      }
+      setShowEndDatePicker(true);
+      setEndDate(date);
+    }
+    else {
+      if (date && startDate && date <= startDate) {
         showErrorModal('La fecha de fin debe ser posterior a la fecha de inicio.');
         setShowEndDatePicker(false)
         return;
       }
-      setEndDate(date);
+      if (date) {setEndDate(date);
+      }
+      setShowEndDatePicker(false);
     }
-    setShowEndDatePicker(false);
   };
 
   const confirmStartDate = () => {
@@ -171,6 +166,12 @@ console.log("imagenes",imagePaths.length);
   };
 
   const confirmEndDate = () => {
+    if (endDate && startDate && endDate <= startDate) {
+      showErrorModal('La fecha de fin debe ser posterior a la fecha de inicio.');
+      setEndDate(startDate)
+      setShowEndDatePicker(false)
+      return;
+    }
     if (endDate) {
       setEndDate(endDate);
     }
@@ -269,60 +270,79 @@ console.log("imagenes",imagePaths.length);
       />
       <MultiImageCompressor onImagesCompressed={handleImagesCompressed} />
 
-      {/* Mostrar las fechas */}
       <View style={styles.datePickerContainer}>
-        {!showStartDatePicker && (
-          <TouchableOpacity onPress={() => ShowDatePicker("init")} style={styles.inputdate}>
-            {startDate ? <Text style={styles.textDate}>* Inicia</Text> : <Text></Text>}
-            <Text style={styles.textDate}>
-              {startDate ? startDate.toLocaleDateString() : '* Fecha de Inicio (DD-MM-YYYY)'}
-            </Text>
-          </TouchableOpacity>
-        )}
-        {showStartDatePicker && (
-          <View>
-            <DateTimePicker
-              value={startDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={handleStartDateChange}
-              minimumDate={new Date()}
-            />
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity onPress={confirmStartDate} style={styles.submitButton}>
-                <Text style={styles.submitButtonText}>Confirmar fecha de inicio</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </View>
+  {!showStartDatePicker && (
+    <TouchableOpacity onPress={() => ShowDatePicker("init")} style={styles.inputdate}>
+      {startDate ? <Text style={styles.textDate}>* Inicia</Text> : <Text></Text>}
+      <Text style={styles.textDate}>
+        {startDate ? startDate.toLocaleDateString() : '* Fecha de Inicio (DD-MM-YYYY)'}
+      </Text>
+    </TouchableOpacity>
+  )}
 
-      <View style={styles.datePickerContainer}>
-        {!showEndDatePicker && (
-          <TouchableOpacity onPress={() => ShowDatePicker("end")} style={[styles.inputdate, !startDate && { opacity: 0.5 }]} disabled={!startDate}>
-            {endDate ? <Text style={styles.textDate}>* Finaliza</Text> : <Text></Text>}
-            <Text style={styles.textDate}>
-              {endDate ? endDate.toLocaleDateString()  : '* Fecha de Fin (DD-MM-YYYY)'}
-            </Text>
+  <Modal
+    visible={showStartDatePicker}
+    transparent={true}
+    animationType="slide"
+    onRequestClose={() => setShowStartDatePicker(false)}
+  >
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        <DateTimePicker
+          value={startDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleStartDateChange}
+          minimumDate={new Date()}
+        />
+        {Platform.OS === 'ios' && (
+          <TouchableOpacity onPress={confirmStartDate} style={styles.submitButton}>
+            <Text style={styles.submitButtonText}>Confirmar fecha de inicio</Text>
           </TouchableOpacity>
         )}
-        {showEndDatePicker && (
-          <View>
-            <DateTimePicker
-              value={endDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={handleEndDateChange}
-              minimumDate={startDate? startDate : new Date()}
-            />
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity onPress={confirmEndDate} style={styles.submitButton}>
-                <Text style={styles.submitButtonText}>Confirmar fecha de fin</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+      </View>
+    </View>
+  </Modal>
+</View>
+
+<View style={styles.datePickerContainer}>
+  {!showEndDatePicker && (
+    <TouchableOpacity
+      onPress={() => ShowDatePicker("end")}
+      style={[styles.inputdate, !startDate && { opacity: 0.5 }]}
+      disabled={!startDate}
+    >
+      {endDate ? <Text style={styles.textDate}>* Finaliza</Text> : <Text></Text>}
+      <Text style={styles.textDate}>
+        {endDate ? endDate.toLocaleDateString() : '* Fecha de Fin (DD-MM-YYYY)'}
+      </Text>
+    </TouchableOpacity>
+  )}
+
+  <Modal
+    visible={showEndDatePicker}
+    transparent={true}
+    animationType="slide"
+    onRequestClose={() => setShowEndDatePicker(false)}
+  >
+    <View style={styles.modalContainer}>
+      <View style={styles.modalContent}>
+        <DateTimePicker
+          value={endDate || new Date()}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleEndDateChange}
+          minimumDate={startDate || new Date()}
+        />
+        {Platform.OS === 'ios' && (
+          <TouchableOpacity onPress={confirmEndDate} style={styles.submitButton}>
+            <Text style={styles.submitButtonText}>Confirmar fecha de fin</Text>
+          </TouchableOpacity>
         )}
       </View>
+    </View>
+  </Modal>
+</View>
 
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>Crear Promoción</Text>
@@ -359,6 +379,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(172, 208, 213,0.5)'
   },
   formContainer: {
+    height:screenHeight*0.9,
     padding: 20,
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -436,6 +457,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     alignSelf: 'center'
+  },
+  modalContainer: {
+    flex: screenHeight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '90%',
+    alignItems: 'center',
   },
 });
 

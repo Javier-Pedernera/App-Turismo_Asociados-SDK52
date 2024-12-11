@@ -325,6 +325,7 @@ export const BranchForm: React.FC<BranchFormProps> = ({ branch, onClose }) => {
             placeholder="Descripción de la sucursal"
             value={description}
             onChangeText={handleDescriptionChange}
+            multiline={true} 
           />
         </>: <View>
          <Text style={styles.labelTitle}>Descripción</Text>
@@ -500,14 +501,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 10,
     top: 10,
-    zIndex: 1, // Asegura que los botones estén por encima
+    zIndex: 1,
   },
 
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    zIndex: 2, // Asegura que esté sobre la imagen
+    zIndex: 2, 
   },
 
   placeholderImage: {
@@ -669,35 +670,13 @@ const styles = StyleSheet.create({
       borderColor: '#acd1d6',
       borderWidth: 1,
       marginBottom: 10,
-      padding: 5,
+      padding: 10,
       textAlignVertical: 'top',
       borderRadius:5
     },
     imageContainer:{
       
     }
-  // },
-  // submitButton: {
-  //   backgroundColor: '#FF4040',
-  //   padding: 10,
-  //   borderRadius: 8,
-  //   alignItems: 'center',
-  //   marginBottom: 10,
-  // },
-  // submitButtonText: {
-  //   color: '#fff',
-  //   fontSize: 16,
-  // },
-  // cancelButton: {
-  //   backgroundColor: '#ccc',
-  //   padding: 10,
-  //   borderRadius: 8,
-  //   alignItems: 'center',
-  // },
-  // cancelButtonText: {
-  //   color: '#fff',
-  //   fontSize: 16,
-  // },
 });
 
 export default BranchForm;
