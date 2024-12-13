@@ -19,8 +19,13 @@ const ConsumedPromotionsModal: React.FC<ConsumedPromotionsModalProps> = ({ visib
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
   const handleDeletePromotion = (promotionId: number) => {
+    console.log('Promoción seleccionada para eliminar:', promotionId);
+    // Cierra el modal de consumos
+    
     setSelectedPromotion(promotionId);
+    onClose(); 
     setIsConfirmModalVisible(true);
+    console.log('isConfirmModalVisible', isConfirmModalVisible);
   };
 // console.log("seleccionada para borrar",selectedPromotion);
 
@@ -114,12 +119,11 @@ export default ConsumedPromotionsModal;
 
 const styles = StyleSheet.create({
   modalContainer: {
-    height:screenHeight,
-    // marginTop: screenHeight*0.15,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex:1
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo semitransparente
+    zIndex: 1, // Nivel más bajo
   },
   modalContent: {
     width: '90%',
@@ -168,6 +172,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Fondo más oscuro
+    zIndex: 10, // Mayor prioridad para el modal superior
+    elevation: 10, // Asegura que se renderice por encima en Android
   },
   confirmModalContent: {
     width: screenWidth - 80,
