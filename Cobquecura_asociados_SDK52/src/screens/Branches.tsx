@@ -219,8 +219,8 @@ const styles = StyleSheet.create({
     marginRight:15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
+    shadowOpacity: 0.3,
+    shadowRadius: 1,
     elevation: 3,
   },
   buttonText: {

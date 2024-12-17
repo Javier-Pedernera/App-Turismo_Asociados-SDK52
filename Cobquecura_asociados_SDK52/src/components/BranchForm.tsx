@@ -98,7 +98,7 @@ export const BranchForm: React.FC<BranchFormProps> = ({ branch, onClose }) => {
         showErrorModal(errorMessage)
         return
       }
-      console.log('status id:', branch.status.id);
+      // console.log('status id:', branch.status.id);
       branchData.status_id = branch.status.id
       resp = await dispatch(updateBranch(branch.branch_id, branchData));
       // console.log("respuesta del dispatch (update)", resp);
@@ -153,6 +153,7 @@ export const BranchForm: React.FC<BranchFormProps> = ({ branch, onClose }) => {
     }
   };
   const handleSetCurrentLocation = async () => {
+    setIsLoading(true);
     try {
       // Pedir permiso para acceder a la ubicación
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -167,6 +168,8 @@ export const BranchForm: React.FC<BranchFormProps> = ({ branch, onClose }) => {
       setLongitude(location.coords.longitude.toString());
     } catch (error) {
       console.error('Error al obtener la ubicación:', error);
+    }finally{
+      setIsLoading(false);
     }
   };
 

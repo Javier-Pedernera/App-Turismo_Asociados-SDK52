@@ -6,7 +6,6 @@ import RNPickerSelect from 'react-native-picker-select';
 import { UserData } from '../redux/types/types';
 import { changePasswordAction, updatePartner, updateUserAction } from '../redux/actions/userActions';
 import Icon from 'react-native-vector-icons/Ionicons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { fetchUserCategories, fetchAllCategories } from '../redux/actions/categoryActions';
 import Checkbox from 'expo-checkbox';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -740,11 +739,16 @@ const styles = StyleSheet.create({
     justifyContent:'center',
     borderRadius:25,
     backgroundColor:'#007a8b',
-    height:45,
-    width:45,
+    height:48,
+    width:48,
     bottom:0,
     right:40,
-    marginTop:20
+    // marginTop:20,
+    margin:4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
+    elevation: 3,
   },
   inputSelect: {
     height: 48,
