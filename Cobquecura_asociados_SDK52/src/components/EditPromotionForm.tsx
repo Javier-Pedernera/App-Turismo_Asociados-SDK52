@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import { ScrollView, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Platform, Modal } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MultiImageCompressor from './MultiImageCompressor';
 import { useDispatch, useSelector } from 'react-redux';
@@ -126,12 +126,12 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
     if (date && endDate && date > endDate ) {
       showErrorModal('La fecha de finalización no puede ser mayor a la fecha de fin.');
       setEndDate(endDate)
-      setShowStartDatePicker(false);
+      // setShowStartDatePicker(false);
       return;
     }
     if (date && date < new Date()) {
       showErrorModal('La fecha de inicio no puede ser menor a la fecha actual.');
-      setShowStartDatePicker(false);
+      // setShowStartDatePicker(false);
       return;
     }
     if (Platform.OS === 'ios') {
@@ -148,12 +148,12 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
     if (date && startDate && date < startDate ) {
       showErrorModal('La fecha de finalización no puede ser menor a la fecha de inicio.');
       setEndDate(startDate)
-      setShowStartDatePicker(false);
+      // setShowEndDatePicker(false);
       return;
     }
     if (date && date < new Date()) {
       showErrorModal('La fecha de fin no puede ser menor a la fecha actual.');
-      setShowStartDatePicker(false);
+      // setShowStartDatePicker(false);
       return;
     }
     if (Platform.OS === 'ios') {
@@ -168,6 +168,9 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
 
   const confirmStartDate = () => {
     if (startDate) {
+      // const DateChile = adjustDateToChileTime(startDate)
+      // console.log("confirmando fecha inicial", startDate);
+      
       setStartDate(startDate);
     }
     setShowStartDatePicker(false);
@@ -180,9 +183,10 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
     setShowEndDatePicker(false);
   };
 
-  const adjustDateToUTC = (date: Date): Date => {
-    const utcDate = new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-    return utcDate;
+  const adjustDateToChileTime = (date: Date): Date => {
+    // Obtén la fecha local según la zona horaria de Chile
+    const chileDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Santiago' }));
+    return chileDate;
   };
   const showErrorModal = (message: string) => {
     setModalMessage(message);
@@ -191,7 +195,7 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
 
   return (
     <ScrollView contentContainerStyle={styles.formContainer}>
-      {isLoading&& <Loader/>}
+      {isLoading && <Loader />}
       <Text style={styles.texttitle}>Título</Text>
       <TextInput
         style={styles.input}
@@ -201,7 +205,7 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
           if (text.length <= 45) {
             setTitle(text);
           } else {
-            showErrorModal('El título no puede superar los 45 caracteres.');
+            showErrorModal("El título no puede superar los 45 caracteres.");
           }
         }}
       />
@@ -218,13 +222,15 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
         style={styles.input}
         placeholder="* Porcentaje de descuento (0-99)"
         keyboardType="numeric"
-        value={discountPercentage !== undefined ? discountPercentage?.toString() : ''}
+        value={
+          discountPercentage !== undefined ? discountPercentage?.toString() : ""
+        }
         onChangeText={(text) => {
           const value = Number(text);
           if (value >= 0 && value <= 99) {
             setDiscountPercentage(value);
           } else {
-            showErrorModal('El porcentaje debe estar entre 0 y 99.');
+            showErrorModal("El porcentaje debe estar entre 0 y 99.");
           }
         }}
       />
@@ -233,19 +239,23 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
         style={styles.input}
         placeholder="Cantidad disponible"
         keyboardType="numeric"
-        value={availableQuantity !== undefined ? availableQuantity?.toString() : ''}
+        value={
+          availableQuantity !== undefined ? availableQuantity?.toString() : ""
+        }
         onChangeText={(text) => {
-          if (text === '') {
+          if (text === "") {
             setAvailableQuantity(null);
           } else {
             if (text.length > 8) {
-              showErrorModal('La cantidad disponible no puede superar los 8 caracteres.');
+              showErrorModal(
+                "La cantidad disponible no puede superar los 8 caracteres."
+              );
             } else {
               const value = Number(text);
               if (value > 0) {
                 setAvailableQuantity(value);
               } else {
-                showErrorModal('La cantidad debe ser mayor a 0.');
+                showErrorModal("La cantidad debe ser mayor a 0.");
               }
             }
           }
@@ -266,7 +276,10 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
         onClose={() => setCategoriesModalVisible(false)}
       />
       {/* Mostrar las imágenes existentes */}
-      <MultiImageCompressor onImagesCompressed={handleImagesCompressed} initialImages={existingImages?.length}/>
+      <MultiImageCompressor
+        onImagesCompressed={handleImagesCompressed}
+        initialImages={existingImages?.length}
+      />
       <Text style={styles.texttitle}>Imágenes actuales</Text>
       <View style={styles.imagesContainer}>
         {existingImages.length > 0 ? (
@@ -291,58 +304,113 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
 
       {/* Mostrar las fechas */}
       <View style={styles.datePickerContainer}>
-        {!startDate ? <Text style={styles.textDateActual}>Fecha de inicio actual: {formatDateToDDMMYYYY(promotion.start_date)} </Text> : <Text></Text>}
-        {startDate ? <Text style={styles.texttitle}>Inicia</Text> : <Text></Text>}
+        {!startDate ? (
+          <Text style={styles.textDateActual}>
+            Fecha de inicio actual: {formatDateToDDMMYYYY(promotion.start_date)}{" "}
+          </Text>
+        ) : (
+          <Text></Text>
+        )}
+        {startDate ? (
+          <Text style={styles.texttitle}>Inicia</Text>
+        ) : (
+          <Text></Text>
+        )}
         {!showStartDatePicker && (
-          <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.inputdate}>
+          <TouchableOpacity
+            onPress={() => setShowStartDatePicker(true)}
+            style={styles.inputdate}
+          >
             <Text style={styles.textDate}>
-              {startDate ? startDate.toLocaleDateString() : 'Modificar fecha de inicio'}
+              {startDate
+                ? startDate.toLocaleDateString()
+                : "Modificar fecha de inicio"}
             </Text>
           </TouchableOpacity>
         )}
         {showStartDatePicker && (
-          <View>
-            <DateTimePicker
-              value={startDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={handleStartDateChange}
-              minimumDate={new Date()}
-            />
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity onPress={confirmStartDate} style={styles.submitButton}>
-                <Text style={styles.submitButtonText}>Confirmar fecha</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <Modal
+            transparent
+            animationType="slide"
+            visible={showStartDatePicker}
+            onRequestClose={() => setShowStartDatePicker(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={Platform.OS === 'ios'? styles.datePickerContainerModal : null}>
+                <DateTimePicker
+                  value={startDate || new Date()}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={handleStartDateChange}
+                  minimumDate={new Date()}
+                />
+                {Platform.OS === "ios" && (
+                  <TouchableOpacity
+                    onPress={confirmStartDate}
+                    style={styles.submitButton}
+                  >
+                    <Text style={styles.submitButtonText}>Confirmar fecha</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </Modal>
         )}
       </View>
 
       <View style={styles.datePickerContainer}>
-        {!endDate ? <Text style={styles.textDateActual}>Fecha de fin actual: {formatDateToDDMMYYYY(promotion.expiration_date)} </Text> : <Text></Text>}
-        {endDate ? <Text style={styles.texttitle}>Finaliza</Text> : <Text></Text>}
+        {!endDate ? (
+          <Text style={styles.textDateActual}>
+            Fecha de fin actual:{" "}
+            {formatDateToDDMMYYYY(promotion.expiration_date)}{" "}
+          </Text>
+        ) : (
+          <Text></Text>
+        )}
+        {endDate ? (
+          <Text style={styles.texttitle}>Finaliza</Text>
+        ) : (
+          <Text></Text>
+        )}
         {!showEndDatePicker && (
-          <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={styles.inputdate}>
+          <TouchableOpacity
+            onPress={() => setShowEndDatePicker(true)}
+            style={styles.inputdate}
+          >
             <Text style={styles.textDate}>
-              {endDate ? endDate.toLocaleDateString() : 'Modificar fecha de Fin'}
+              {endDate
+                ? endDate.toLocaleDateString()
+                : "Modificar fecha de Fin"}
             </Text>
           </TouchableOpacity>
         )}
         {showEndDatePicker && (
-          <View>
-            <DateTimePicker
-              value={endDate || new Date()}
-              mode="date"
-              display="default"
-              onChange={handleEndDateChange}
-              minimumDate={startDate? startDate : new Date()}
-            />
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity onPress={confirmEndDate} style={styles.submitButton}>
-                <Text style={styles.submitButtonText}>Confirmar fecha</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <Modal
+            transparent
+            animationType="slide"
+            visible={showEndDatePicker}
+            onRequestClose={() => setShowEndDatePicker(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={Platform.OS === 'ios'? styles.datePickerContainerModal : null}>
+                <DateTimePicker
+                  value={endDate || new Date()}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={handleEndDateChange}
+                  minimumDate={startDate ? startDate : new Date()}
+                />
+                {Platform.OS === "ios" && (
+                  <TouchableOpacity
+                    onPress={confirmEndDate}
+                    style={styles.submitButton}
+                  >
+                    <Text style={styles.submitButtonText}>Confirmar fecha</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </Modal>
         )}
       </View>
 
@@ -364,7 +432,7 @@ const EditPromotionForm: React.FC<EditPromotionFormProps> = ({ promotion, onClos
           setModalSuccessVisible(false);
           onClose();
         }}
-        />
+      />
     </ScrollView>
   );
 };
@@ -430,6 +498,19 @@ const styles = StyleSheet.create({
   },
   datePickerContainer: {
     marginBottom: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  datePickerContainerModal: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
   },
   imagesContainer: {
     marginBottom: 10,
